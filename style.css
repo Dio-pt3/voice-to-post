@@ -1,0 +1,124 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #101713;
+  color: #eef5ef;
+  font-family: Arial, sans-serif;
+  line-height: 1.6;
+}
+
+main {
+  width: min(720px, 100%);
+  margin: 0 auto;
+  padding: 48px 20px;
+}
+
+.badge {
+  color: #b0ef88;
+  font-size: 13px;
+  font-weight: bold;
+  letter-spacing: 3px;
+}
+
+h1 {
+  font-size: clamp(32px, 6vw, 48px);
+  line-height: 1.15;
+}
+
+h2 {
+  margin-top: 0;
+  font-size: 20px;
+}
+
+p, small {
+  color: #b5c5b9;
+}
+
+section {
+  margin: 24px 0;
+  padding: 24px;
+  background: #1b261f;
+  border: 1px solid #35463b;
+  border-radius: 18px;
+}
+
+.buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+button {
+  padding: 13px 20px;
+  border: 0;
+  border-radius: 10px;
+  background: #b0ef88;
+  color: #14200e;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+#stop {
+  background: #f3b8ac;
+}
+
+button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+label {
+  display: block;
+  margin-bottom: 8px;
+}
+
+textarea {
+  width: 100%;
+  padding: 14px;
+  border: 1px solid #53685a;
+  border-radius: 10px;
+  background: #101713;
+  color: #eef5ef;
+  font: inherit;
+  resize: vertical;
+}
+
+audio {
+  width: 100%;
+  margin-top: 12px;
+}
+
+:focus-visible {
+  outline: 3px solid #b0ef88;
+  outline-offset: 4px;
+}
+input {
+  width: 100%;
+  margin-bottom: 16px;
+  padding: 14px;
+  border: 1px solid #53685a;
+  border-radius: 10px;
+  background: #101713;
+  color: #eef5ef;
+  font: inherit;
+}
+
+#copyPost {
+  margin-top: 12px;
+}
+#transcript {
+  margin-bottom: 16px;
+}
+select {
+  width: 100%;
+  padding: 14px;
+  border: 1px solid #53685a;
+  border-radius: 10px;
+  background: #101713;
+  color: #eef5ef;
+  font: inherit;
+}
