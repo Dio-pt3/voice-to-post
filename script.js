@@ -305,19 +305,13 @@ async function checkBufferConnection() {
 
 checkBufferConnection();
 
-// LOAD CONNECTED SOCIAL ACCOUNTS
-const loadChannelsButton = document.querySelector("#loadChannels");
-const channelSelect = document.querySelector("#bufferChannel");
+ // LOAD CONNECTED SOCIAL ACCOUNTS
 const channelStatus = document.querySelector("#channelStatus");
+const socialAccountsContainer = document.querySelector("#socialAccounts");
 
-loadChannelsButton.addEventListener("click", async () => {
-  loadChannelsButton.disabled = true;
-  channelSelect.disabled = true;
-  channelStatus.textContent = "Loading your social accounts…";
-
-  channelSelect.replaceChildren(
-    new Option("Choose a social account", "")
-  );
+async function loadChannels() {
+  channelStatus.textContent = "Loading your connected accounts...";
+  socialAccountsContainer.replaceChildren();
 
   try {
     const response = await fetch("/api/buffer/channels", {
@@ -332,26 +326,37 @@ loadChannelsButton.addEventListener("click", async () => {
 
     if (!data.channels.length) {
       channelStatus.textContent =
-        "No social accounts found. Connect a social account in Buffer, then load again.";
+        "No social accounts found. Connect your accounts through Buffer.";
       return;
     }
 
     for (const channel of data.channels) {
-      const label =
-        `${channel.name} — ${channel.service} (${channel.organization})`;
+      const label = document.createElement("label");
+      label.className = "social-account-option";
 
-      channelSelect.add(new Option(label, channel.id));
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.value = channel.id;
+      checkbox.name = "bufferChannel";
+
+      label.appendChild(checkbox);
+      label.append(
+        ` ${channel.name} — ${channel.service} (${channel.organization})`
+      );
+
+      socialAccountsContainer.appendChild(label);
     }
 
-    channelSelect.disabled = false;
     channelStatus.textContent =
-      "Accounts loaded. Choose where your post will go.";
+      "Select the accounts you want to publish to.";
   } catch (error) {
     channelStatus.textContent = error.message;
-  } finally {
-    loadChannelsButton.disabled = false;
   }
-});
+}
+
+// Automatically load accounts when the page opens
+loadChannels();
+
 
 // POST A DRAFT THAT STARTED WITH DICTATION
 const postNowButton = document.querySelector("#postNow");

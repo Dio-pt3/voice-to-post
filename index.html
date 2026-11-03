@@ -36,12 +36,12 @@
       <p id="dictationStatus" role="status">
         Ready when you are.
       </p>
-      <button id="loadChannels">Load social accounts</button>
-      <p id="channelStatus" role="status"></p>
-      <label for="bufferChannel">Choose a social account</label>
-      <select id="bufferChannel" disabled>
-        <option value="">Load your accounts first</option>
-      </select>
+      
+      <div id="socialAccountsSection">
+        <h3>Choose social accounts</h3>
+        <p id="channelStatus" role="status">Loading your connected accounts...</p>
+        <div id="socialAccounts"></div>
+      </div>
 
       <label for="transcript">Your words</label>
       <textarea
@@ -79,18 +79,7 @@
       ></textarea>
 
       <button id="copyPost">Copy post</button>
-    </section>
-  <section>
-  <h2>3. Publish your post</h2>
-
-  <p>Choose your social account above, then review your draft.</p>
-
-  <button id="postNow" disabled>Post now</button>
-
-  <p id="publishStatus" role="status">
-    Dictate your idea and create a draft to unlock posting.</p>
-  </section>
-
+    
     <small>
   Your text is saved in this browser on this device.
   Clearing browser data removes saved work.

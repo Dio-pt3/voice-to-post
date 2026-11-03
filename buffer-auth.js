@@ -1,5 +1,45 @@
 const session = require("express-session");
 const crypto = require("node:crypto");
+const { Redis } = require("@upstash/redis");
+
+const redis = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN
+});
+
+class UpstashSessionStore extends session.Store {
+  get(sid, callback) {
+    redis.get(`voicepost:sess:${sid}`)
+      .then((data) => callback(null, data || null))
+      .catch(callback);
+  }
+
+  set(sid, sessionData, callback = () => {}) {
+    const expiresAt = sessionData.cookie?.expires
+      ? new Date(sessionData.cookie.expires).getTime()
+      : Date.now() + (sessionData.cookie?.maxAge || 3600000);
+
+    const ttl = Math.ceil((expiresAt - Date.now()) / 1000);
+
+    if (ttl <= 0) {
+      return this.destroy(sid, callback);
+    }
+
+    redis.set(`voicepost:sess:${sid}`, sessionData, { ex: ttl })
+      .then(() => callback(null))
+      .catch(callback);
+  }
+
+  destroy(sid, callback = () => {}) {
+    redis.del(`voicepost:sess:${sid}`)
+      .then(() => callback(null))
+      .catch(callback);
+  }
+
+  touch(sid, sessionData, callback = () => {}) {
+    this.set(sid, sessionData, callback);
+  }
+}
 
 module.exports = function setupBufferAuth(app) {
     if (
@@ -8,18 +48,21 @@ module.exports = function setupBufferAuth(app) {
   ) {
     throw new Error("SESSION_SECRET must be set to a secure 64-character secret.");
   }
-  app.use(session({
-    name: "voicepost.sid",
-    secret: process.env.SESSION_SECRET,
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      httpOnly: true,
-      secure: true,
-      sameSite: "lax",
-      maxAge: 60 * 60 * 1000
-    }
-  }));
+  app.set("trust proxy", 1);
+
+app.use(session({
+  store: new UpstashSessionStore(),
+  name: "voicepost.sid",
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    maxAge: 60 * 60 * 1000
+  }
+}));
 
   app.get("/auth/buffer", (req, res) => {
     const clientId = process.env.BUFFER_CLIENT_ID;
