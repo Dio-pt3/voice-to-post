@@ -1,4 +1,8 @@
-require("node:process").loadEnvFile();
+const fs = require("node:fs");
+
+if (fs.existsSync(".env")) {
+  require("node:process").loadEnvFile();
+}
 const express = require("express");
 const path = require("node:path");
 
