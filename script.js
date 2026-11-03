@@ -219,58 +219,6 @@ copyPostButton.addEventListener("click", async () => {
   }
 });
 
-// SAVE AND RESTORE YOUR WORK
-const draftStorageKey = "voice-to-post-draft-v1";
-
-const saveStatus = document.createElement("p");
-saveStatus.setAttribute("role", "status");
-postDraft.after(saveStatus);
-
-function saveDraft() {
-  try {
-    localStorage.setItem(draftStorageKey, JSON.stringify({
-      transcript: transcriptBox.value,
-      headline: headlineInput.value,
-      post: postDraft.value
-    }));
-
-    saveStatus.textContent = "Saved in this browser.";
-  } catch (error) {
-    saveStatus.textContent =
-      "Could not save automatically. Copy your post to keep it.";
-  }
-}
-
-try {
-  const saved = localStorage.getItem(draftStorageKey);
-
-  if (saved) {
-    const draft = JSON.parse(saved);
-
-    if (typeof draft.transcript === "string") {
-      transcriptBox.value = draft.transcript;
-    }
-
-    if (typeof draft.headline === "string") {
-      headlineInput.value = draft.headline;
-    }
-
-    if (typeof draft.post === "string") {
-      postDraft.value = draft.post;
-    }
-
-    saveStatus.textContent = "Your previous work was restored.";
-  }
-} catch (error) {
-  saveStatus.textContent =
-    "Previous work could not be restored.";
-}
-
-// Save when you type or edit.
-for (const field of [transcriptBox, headlineInput, postDraft]) {
-  field.addEventListener("input", saveDraft);
-}
-
 // CHECK BUFFER CONNECTION
 async function checkBufferConnection() {
   const status = document.querySelector("#bufferStatus");
