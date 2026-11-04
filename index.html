@@ -77,11 +77,15 @@
         rows="9"
         placeholder="Your editable draft will appear here."
       ></textarea>
-
-      <button id="copyPost">Copy post</button>
-      <p id="formaliseStatus" role="status"></p>
-      <button id="postNow">Post now</button>
+      <label for="scheduledAt">Schedule date and time</label>
+      <input type="datetime-local" id="scheduledAt">
+      
+      <div class="publish-actions">
+        <button id="postNow">Post now</button>
+        <button id="postLater">Post later</button>
+      </div>
       <p id="publishStatus" role="status"></p>
+    </section>
   </main>
 </body>
 </html>

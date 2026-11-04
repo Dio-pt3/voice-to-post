@@ -1,3 +1,4 @@
+
 const dictateButton = document.querySelector("#dictate");
 const endDictationButton = document.querySelector("#endDictation");
 const dictationStatus = document.querySelector("#dictationStatus");
@@ -11,7 +12,6 @@ const headlineInput = document.querySelector("#headline");
 const generateButton = document.querySelector("#generate");
 const postDraft = document.querySelector("#postDraft");
 const draftStatus = document.querySelector("#draftStatus");
-const copyPostButton = document.querySelector("#copyPost");
 
 let originalText = null;
 
@@ -39,6 +39,8 @@ if (!SpeechRecognition) {
   recognition.interimResults = true;
 
   let hadError = false;
+  let userStopped = false;
+  let shouldRestart = false;
 
   function restoreEditing() {
     dictateButton.disabled = false;
@@ -51,17 +53,22 @@ if (!SpeechRecognition) {
 
   dictateButton.addEventListener("click", () => {
     hadError = false;
+    userStopped = false;
+    shouldRestart = true;
+
     dictateButton.disabled = true;
     transcriptBox.readOnly = true;
     formaliseButton.disabled = true;
     undoButton.disabled = true;
     generateButton.disabled = true;
+
     dictationStatus.textContent = "Starting dictation…";
 
     try {
       recognition.start();
     } catch (error) {
       restoreEditing();
+      shouldRestart = false;
       dictationStatus.textContent =
         "Could not start dictation. Refresh and try again.";
     }
@@ -79,10 +86,11 @@ if (!SpeechRecognition) {
 
         if (words) {
           resetFormalisation();
+
           transcriptBox.value +=
             (transcriptBox.value &&
             !/\s$/.test(transcriptBox.value) ? " " : "") + words;
-          saveDraft();
+
           markVoiceInput();
         }
       }
@@ -90,18 +98,32 @@ if (!SpeechRecognition) {
   });
 
   endDictationButton.addEventListener("click", () => {
+    userStopped = true;
+    shouldRestart = false;
+
     endDictationButton.disabled = true;
     dictationStatus.textContent = "Finishing dictation…";
+
     recognition.stop();
   });
 
   recognition.addEventListener("error", (event) => {
     hadError = true;
+
     dictationStatus.textContent =
       `Dictation error: ${event.error}. Check microphone permission and internet access.`;
   });
 
   recognition.addEventListener("end", () => {
+    if (shouldRestart && !userStopped && !hadError) {
+      try {
+        recognition.start();
+        return;
+      } catch (error) {
+        shouldRestart = false;
+      }
+    }
+
     restoreEditing();
 
     if (!hadError) {
@@ -113,7 +135,7 @@ if (!SpeechRecognition) {
   window.addEventListener("pagehide", () => recognition.abort());
 }
 
-/// AI FORMALISATION
+// AI FORMALISATION
 formaliseButton.addEventListener("click", async () => {
   const text = transcriptBox.value;
 
@@ -155,7 +177,7 @@ formaliseButton.addEventListener("click", async () => {
     if (originalText === null) originalText = text;
 
     transcriptBox.value = data.text;
-    saveDraft();
+
     formaliseStatus.textContent =
       "Text formalised. Review it before creating your draft.";
   } catch (error) {
@@ -173,13 +195,12 @@ formaliseButton.addEventListener("click", async () => {
 undoButton.addEventListener("click", () => {
   if (originalText !== null) {
     transcriptBox.value = originalText;
-    saveDraft();
     resetFormalisation();
     formaliseStatus.textContent = "Original text restored.";
   }
 });
 
-// CREATE AND COPY A DRAFT
+// CREATE A DRAFT
 generateButton.addEventListener("click", () => {
   const words = transcriptBox.value.trim();
   const headline = headlineInput.value.trim();
@@ -197,26 +218,9 @@ generateButton.addEventListener("click", () => {
   }
 
   postDraft.value = [headline, words].filter(Boolean).join("\n\n");
-  saveDraft();
+
   markVoiceDraft();
   draftStatus.textContent = "Draft ready. Edit it before sharing.";
-});
-
-copyPostButton.addEventListener("click", async () => {
-  if (!postDraft.value.trim()) {
-    draftStatus.textContent = "Create a draft first.";
-    return;
-  }
-
-  try {
-    await navigator.clipboard.writeText(postDraft.value);
-    draftStatus.textContent = "Post copied!";
-  } catch (error) {
-    postDraft.focus();
-    postDraft.select();
-    draftStatus.textContent =
-      "Press Ctrl + C to copy the selected post.";
-  }
 });
 
 // CHECK BUFFER CONNECTION
@@ -251,9 +255,7 @@ async function checkBufferConnection() {
   }
 }
 
-
-
- // LOAD CONNECTED SOCIAL ACCOUNTS
+// LOAD CONNECTED SOCIAL ACCOUNTS
 const channelStatus = document.querySelector("#channelStatus");
 const socialAccountsContainer = document.querySelector("#socialAccounts");
 
@@ -288,6 +290,7 @@ async function loadChannels() {
       checkbox.name = "bufferChannel";
 
       label.appendChild(checkbox);
+
       label.append(
         ` ${channel.name} — ${channel.service} (${channel.organization})`
       );
@@ -302,33 +305,38 @@ async function loadChannels() {
   }
 }
 
-// Automatically load accounts when the page opens
-// Load accounts only when Buffer is connected
+// INITIALISE BUFFER
 async function initialiseBuffer() {
   await checkBufferConnection();
 
-  const response = await fetch("/api/buffer/status", {
-    cache: "no-store"
-  });
+  try {
+    const response = await fetch("/api/buffer/status", {
+      cache: "no-store"
+    });
 
-  const data = await response.json();
+    const data = await response.json();
 
-  if (data.connected) {
-    await loadChannels();
+    if (data.connected) {
+      await loadChannels();
+    }
+  } catch (error) {
+    channelStatus.textContent =
+      "Could not load Buffer accounts. Refresh to try again.";
   }
 }
 
 initialiseBuffer();
 
-
-
- // POST NOW
+// POST NOW AND POST LATER
 const postNowButton = document.querySelector("#postNow");
+const postLaterButton = document.querySelector("#postLater");
 const publishStatus = document.querySelector("#publishStatus");
+
 let postingInProgress = false;
 
 function updatePostButton() {
   postNowButton.disabled = postingInProgress;
+  postLaterButton.disabled = postingInProgress;
 }
 
 function markVoiceInput() {
@@ -341,6 +349,7 @@ function markVoiceDraft() {
   updatePostButton();
 }
 
+// POST NOW
 postNowButton.addEventListener("click", async () => {
   if (postingInProgress) return;
 
@@ -369,7 +378,7 @@ postNowButton.addEventListener("click", async () => {
   );
 
   if (!window.confirm(
-    `Publish now to:\n${accountNames.join("\n")}\n\n${text}`
+    `Publish immediately to:\n${accountNames.join("\n")}\n\n${text}`
   )) {
     return;
   }
@@ -394,9 +403,7 @@ postNowButton.addEventListener("click", async () => {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(
-          data.error || "Posting failed."
-        );
+        throw new Error(data.error || "Posting failed.");
       }
     }
 
@@ -411,18 +418,104 @@ postNowButton.addEventListener("click", async () => {
   }
 });
 
-updatePostButton();
 
+  // POST LATER
+  const scheduledAtInput = document.querySelector("#scheduledAt");
 
-// Place Copy post and Post now beside each other.
-const postActions = document.createElement("div");
-postActions.className = "buttons";
+  postLaterButton.addEventListener("click", async () => {
+    if (postingInProgress) return;
 
-copyPostButton.before(postActions);
-postActions.append(copyPostButton, postNowButton);
+    const text = postDraft.value.trim();
+    const scheduledAt = scheduledAtInput.value;
 
-postActions.style.marginTop = "12px";
-copyPostButton.style.marginTop = "0";
-postNowButton.style.marginTop = "0";
+    if (!text) {
+      publishStatus.textContent =
+        "Enter or generate some post text before scheduling.";
+      return;
+    }
+
+    if (!scheduledAt) {
+      publishStatus.textContent =
+        "Choose a date and time for your post.";
+      return;
+    }
+
+    const scheduledDate = new Date(scheduledAt);
+
+    if (
+      !Number.isFinite(scheduledDate.getTime()) ||
+      scheduledDate.getTime() <= Date.now() + 60000
+    ) {
+      publishStatus.textContent =
+        "Choose a future date and time at least one minute away.";
+      return;
+    }
+
+    const selectedAccounts = [
+      ...socialAccountsContainer.querySelectorAll(
+        'input[name="bufferChannel"]:checked'
+      )
+    ];
+
+    if (!selectedAccounts.length) {
+      publishStatus.textContent =
+        "Select at least one social account.";
+      return;
+    }
+
+    const accountNames = selectedAccounts.map(
+      checkbox => checkbox.closest("label").textContent.trim()
+    );
+
+    const localDate = scheduledDate.toLocaleString();
+
+    if (!window.confirm(
+      `Schedule this post for ${localDate} to:\n` +
+      `${accountNames.join("\n")}\n\n${text}`
+    )) {
+      return;
+    }
+
+    postingInProgress = true;
+    updatePostButton();
+
+    publishStatus.textContent = "Scheduling with Buffer...";
+
+    try {
+      const scheduledAtUTC = scheduledDate.toISOString();
+
+      for (const checkbox of selectedAccounts) {
+        const response = await fetch("/api/buffer/post-later", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            text,
+            channelId: checkbox.value,
+            scheduledAt: scheduledAtUTC
+          })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || "Scheduling failed.");
+        }
+      }
+
+      publishStatus.textContent =
+        `Buffer accepted your post for ${localDate} on all selected accounts.`;
+
+    } catch (error) {
+      publishStatus.textContent =
+        `${error.message} Check Buffer before scheduling again.`;
+
+    } finally {
+      postingInProgress = false;
+      updatePostButton();
+    }
+  });
+
 
 updatePostButton();
