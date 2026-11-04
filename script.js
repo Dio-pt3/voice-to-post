@@ -251,7 +251,7 @@ async function checkBufferConnection() {
   }
 }
 
-checkBufferConnection();
+
 
  // LOAD CONNECTED SOCIAL ACCOUNTS
 const channelStatus = document.querySelector("#channelStatus");
@@ -303,15 +303,28 @@ async function loadChannels() {
 }
 
 // Automatically load accounts when the page opens
-loadChannels();
+// Load accounts only when Buffer is connected
+async function initialiseBuffer() {
+  await checkBufferConnection();
+
+  const response = await fetch("/api/buffer/status", {
+    cache: "no-store"
+  });
+
+  const data = await response.json();
+
+  if (data.connected) {
+    await loadChannels();
+  }
+}
+
+initialiseBuffer();
 
 
 
  // POST NOW
 const postNowButton = document.querySelector("#postNow");
 const publishStatus = document.querySelector("#publishStatus");
-const socialAccountsContainer = document.querySelector("#socialAccounts");
-
 let postingInProgress = false;
 
 function updatePostButton() {
