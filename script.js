@@ -306,104 +306,89 @@ async function loadChannels() {
 loadChannels();
 
 
-// POST A DRAFT THAT STARTED WITH DICTATION
+
+ // POST NOW
 const postNowButton = document.querySelector("#postNow");
 const publishStatus = document.querySelector("#publishStatus");
+const socialAccountsContainer = document.querySelector("#socialAccounts");
 
-let hasDictatedText = false;
-let draftFromDictation = false;
 let postingInProgress = false;
 
 function updatePostButton() {
-  const ready =
-    !postingInProgress &&
-    draftFromDictation &&
-    Boolean(postDraft.value.trim()) &&
-    Boolean(channelSelect.value);
-
-  postNowButton.disabled = !ready;
-
-  if (!hasDictatedText) {
-    postNowButton.title = "Dictate something first.";
-  } else if (!draftFromDictation) {
-    postNowButton.title = "Click Create draft after dictating.";
-  } else if (!postDraft.value.trim()) {
-    postNowButton.title = "Your post draft is empty.";
-  } else if (!channelSelect.value) {
-    postNowButton.title = "Select a social account.";
-  } else {
-    postNowButton.title = "Publish your reviewed draft now.";
-  }
+  postNowButton.disabled = postingInProgress;
 }
 
 function markVoiceInput() {
-  hasDictatedText = true;
-  draftFromDictation = false;
-
-  publishStatus.textContent =
-    "Voice recognised. Create a draft when your wording is ready.";
-
+  publishStatus.textContent = "Voice recognised.";
   updatePostButton();
 }
 
 function markVoiceDraft() {
-  draftFromDictation = hasDictatedText;
-
-  publishStatus.textContent = draftFromDictation
-    ? "Review your draft and select an account before posting."
-    : "Dictate your idea first to unlock posting.";
-
+  publishStatus.textContent = "Draft ready.";
   updatePostButton();
 }
 
-transcriptBox.addEventListener("input", () => {
-  if (!transcriptBox.value.trim()) {
-    hasDictatedText = false;
-  }
-
-  draftFromDictation = false;
-  updatePostButton();
-});
-
-postDraft.addEventListener("input", updatePostButton);
-channelSelect.addEventListener("change", updatePostButton);
-
 postNowButton.addEventListener("click", async () => {
-  if (postNowButton.disabled) return;
+  if (postingInProgress) return;
 
   const text = postDraft.value.trim();
-  const channelId = channelSelect.value;
-  const accountName =
-    channelSelect.options[channelSelect.selectedIndex].text;
+
+  if (!text) {
+    publishStatus.textContent =
+      "Enter or generate some post text before publishing.";
+    return;
+  }
+
+  const selectedAccounts = [
+    ...socialAccountsContainer.querySelectorAll(
+      'input[name="bufferChannel"]:checked'
+    )
+  ];
+
+  if (!selectedAccounts.length) {
+    publishStatus.textContent =
+      "Select at least one social account.";
+    return;
+  }
+
+  const accountNames = selectedAccounts.map(
+    checkbox => checkbox.closest("label").textContent.trim()
+  );
 
   if (!window.confirm(
-    `Publish now to ${accountName}?\n\n${text}`
+    `Publish now to:\n${accountNames.join("\n")}\n\n${text}`
   )) {
     return;
   }
 
   postingInProgress = true;
   updatePostButton();
-  publishStatus.textContent = "Sending to Buffer…";
+  publishStatus.textContent = "Sending to Buffer...";
 
   try {
-    const response = await fetch("/api/buffer/post-now", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ text, channelId })
-    });
+    for (const checkbox of selectedAccounts) {
+      const response = await fetch("/api/buffer/post-now", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          text,
+          channelId: checkbox.value
+        })
+      });
 
-    const data = await response.json();
+      const data = await response.json();
 
-    if (!response.ok) {
-      throw new Error(data.error || "Posting failed.");
+      if (!response.ok) {
+        throw new Error(
+          data.error || "Posting failed."
+        );
+      }
     }
 
-    draftFromDictation = false;
     publishStatus.textContent =
-      "Buffer accepted your post for immediate publishing. Check Buffer or your social profile to confirm delivery.";
+      "Buffer accepted your post for all selected accounts.";
   } catch (error) {
     publishStatus.textContent =
       `${error.message} Check Buffer before sending again.`;
@@ -412,6 +397,9 @@ postNowButton.addEventListener("click", async () => {
     updatePostButton();
   }
 });
+
+updatePostButton();
+
 
 // Place Copy post and Post now beside each other.
 const postActions = document.createElement("div");
