@@ -35,7 +35,7 @@ if (!SpeechRecognition) {
   const recognition = new SpeechRecognition();
 
   recognition.lang = "en-NG";
-  recognition.continuous = true;
+  recognition.continuous = false;
   recognition.interimResults = true;
 
   let hadError = false;
