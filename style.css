@@ -1,49 +1,86 @@
+
+/* ================================
+   VOICE TO POST | FOREST CALM
+================================ */
+
+:root {
+  --cream: #F6F3E9;
+  --cream-dark: #EAE6D9;
+  --sage: #A3B18A;
+  --sage-light: #DCE5D4;
+  --sage-dark: #657653;
+  --forest: #343A32;
+  --forest-deep: #263027;
+  --text: #343A32;
+  --text-muted: #72796B;
+  --border: #D8DDCE;
+  --white: #FFFFFF;
+}
+
+/* Reset */
+
 * {
   box-sizing: border-box;
 }
 
+/* Page */
+
 body {
   margin: 0;
-  background: #101713;
-  color: #eef5ef;
+  background: var(--cream);
+  color: var(--text);
   font-family: Arial, sans-serif;
-  line-height: 1.6;
+  line-height: 1.65;
 }
 
 main {
-  width: min(720px, 100%);
+  width: min(760px, 100%);
   margin: 0 auto;
-  padding: 48px 20px;
+  padding: 48px 24px;
 }
 
+/* Heading */
+
 .badge {
-  color: #b0ef88;
-  font-size: 13px;
+  display: inline-block;
+  color: var(--sage-dark);
+  font-size: 12px;
   font-weight: bold;
   letter-spacing: 3px;
+  text-transform: uppercase;
 }
 
 h1 {
   font-size: clamp(32px, 6vw, 48px);
   line-height: 1.15;
+  letter-spacing: -1.5px;
+  color: var(--forest);
 }
 
 h2 {
   margin-top: 0;
   font-size: 20px;
+  color: var(--forest);
 }
 
-p, small {
-  color: #b5c5b9;
+p,
+small {
+  color: var(--text-muted);
 }
+
+/* Sections */
 
 section {
   margin: 24px 0;
-  padding: 24px;
-  background: #1b261f;
-  border: 1px solid #35463b;
-  border-radius: 18px;
+  padding: 28px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  box-shadow: 0 4px 16px rgba(52, 58, 50, 0.035);
+  transition: border-color 0.2s ease;
 }
+
+/* Buttons */
 
 .buttons {
   display: flex;
@@ -52,39 +89,106 @@ section {
 }
 
 button {
-  padding: 13px 20px;
-  border: 0;
-  border-radius: 10px;
-  background: #b0ef88;
-  color: #14200e;
-  font-size: 16px;
+  padding: 13px 22px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  background: var(--forest);
+  color: var(--cream);
+  font-size: 15px;
   font-weight: bold;
   cursor: pointer;
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
-#stop {
-  background: #f3b8ac;
+button:hover:not(:disabled) {
+  background: var(--forest-deep);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(52, 58, 50, 0.12);
 }
+
+button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+/* Stop button */
+
+#stop {
+  background: #F2E4D9;
+  color: #8B5140;
+  border-color: #E8D0C0;
+}
+
+#stop:hover:not(:disabled) {
+  background: #EBD5C5;
+}
+
+/* Disabled buttons */
 
 button:disabled {
   opacity: 0.45;
   cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
+
+/* Labels */
 
 label {
   display: block;
   margin-bottom: 8px;
+  color: var(--forest);
+  font-weight: 600;
+}
+
+/* Text fields */
+
+textarea,
+input,
+select {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--cream);
+  color: var(--forest);
+  font: inherit;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
 }
 
 textarea {
-  width: 100%;
-  padding: 14px;
-  border: 1px solid #53685a;
-  border-radius: 10px;
-  background: #101713;
-  color: #eef5ef;
-  font: inherit;
   resize: vertical;
+}
+
+textarea:focus,
+input:focus,
+select:focus {
+  border-color: var(--sage-dark);
+  background: var(--white);
+  box-shadow: 0 0 0 3px rgba(163, 177, 138, 0.2);
+}
+
+/* Specific elements */
+
+#transcript {
+  margin-bottom: 16px;
+}
+
+#copyPost {
+  margin-top: 12px;
+}
+
+input {
+  margin-bottom: 16px;
+}
+
+select {
+  cursor: pointer;
 }
 
 audio {
@@ -92,33 +196,41 @@ audio {
   margin-top: 12px;
 }
 
+/* Keyboard accessibility */
+
 :focus-visible {
-  outline: 3px solid #b0ef88;
+  outline: 3px solid var(--sage-dark);
   outline-offset: 4px;
 }
-input {
-  width: 100%;
-  margin-bottom: 16px;
-  padding: 14px;
-  border: 1px solid #53685a;
-  border-radius: 10px;
-  background: #101713;
-  color: #eef5ef;
-  font: inherit;
+
+/* Responsive */
+
+@media (max-width: 600px) {
+  main {
+    padding: 28px 16px;
+  }
+
+  section {
+    padding: 20px;
+    margin: 18px 0;
+    border-radius: 16px;
+  }
+
+  h1 {
+    font-size: 34px;
+  }
+
+  .buttons button {
+    flex: 1 1 auto;
+  }
 }
 
-#copyPost {
-  margin-top: 12px;
-}
-#transcript {
-  margin-bottom: 16px;
-}
-select {
-  width: 100%;
-  padding: 14px;
-  border: 1px solid #53685a;
-  border-radius: 10px;
-  background: #101713;
-  color: #eef5ef;
-  font: inherit;
+/* Reduced motion accessibility */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+  }
 }
