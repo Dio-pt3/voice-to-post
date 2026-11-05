@@ -32,7 +32,7 @@ h1 {
 h2 {
   margin-top: 0;
   font-size: 20px;
-  color: #b0ef88
+  
 }
 
 p, small {
@@ -137,7 +137,7 @@ a[href="/auth/buffer"] {
   padding: 12px 22px;
   margin: 8px 0 16px;
   border-radius: 10px;
-  background: #35463b;
+  background: #b0ef88;
   color: #eef5ef;
   font-weight: bold;
   text-decoration: none;
@@ -146,6 +146,6 @@ a[href="/auth/buffer"] {
 }
 
 a[href="/auth/buffer"]:hover {
-  background: #465b4a;
+  background: #b0ef88;
   transform: translateY(-1px);
 }
