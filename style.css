@@ -234,3 +234,31 @@ audio {
     transition: none !important;
   }
 }
+
+/* Connect Buffer button */
+
+a[href="/auth/buffer"] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 22px;
+  margin: 8px 0 16px;
+  border-radius: 12px;
+  background: #657653;
+  color: #F6F3E9;
+  font-weight: bold;
+  text-decoration: none;
+  border: 1px solid #657653;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+a[href="/auth/buffer"]:hover {
+  background: #4F6040;
+  border-color: #4F6040;
+  transform: translateY(-1px);
+}
+
+a[href="/auth/buffer"]:focus-visible {
+  outline: 3px solid #A3B18A;
+  outline-offset: 4px;
+}
